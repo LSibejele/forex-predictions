@@ -16,74 +16,77 @@ namespace Forex
 
         static void Main(string[] args)
         {
-            RunPredictions();
-            while (true)
-            {
-                switch(Console.ReadKey().Key)
-                {
-                    case ConsoleKey.Enter:
-                        RunPredictions();
-                        break;
-                    case ConsoleKey.Spacebar:
-                        Run();
-                        break;
-                    default: break;    
-                }
-            }
+            PopulateParameters();
+            Run();
+            Repeat();
         }
 
-        private static void RunPredictions()
+        private static void Repeat()
         {
+            Console.WriteLine("Press space to repeat with same parameters, press enter to run with new parameters...");
+            while (true)
+            {
+                switch (Console.ReadKey().Key)
+                {
+                    case ConsoleKey.Enter:
+                        Console.Clear();
+                        PopulateParameters();
+                        Run();
+                        break;
+                    case ConsoleKey.Spacebar:
+                        Console.Clear();
+                        Run();
+                        break;
+                    default: break;
+                }
+            }
             
-            CollectParameters();
-            Run();
         }
 
         private static void Run()
         {
-            Console.Clear();
             double _accountSize = accountSize;
             double _percentageRiskPerTrade = percentageRiskPerTrade;
-            double _numberOfTrades = numberOfTrades;
             double _riskToReward = riskToReward;
+            int _numberOfTrades = numberOfTrades;
+            int winCounter = 0;
             Random rng = new Random();
-            List<int> tradeResults = new List<int>();
-            for (int i = 0; i < numberOfTrades; i++)
+
+            for (int i = 1; i <= _numberOfTrades; i++)
             {
-                int tradeResult = rng.Next(2);
-                tradeResults.Add(tradeResult);
-            }
-            double winCounter = 0;
-            for (int i = 0; i < tradeResults.Count; i++)
-            {
-                var result = tradeResults[i];
                 double tradedAmount = Math.Round(_accountSize * _percentageRiskPerTrade, 2);
-                if (result == (int)TradeResult.Win)
+                TradeResult result = (TradeResult)rng.Next(2);
+                if (result == TradeResult.Win)
                 {
+                    Print(_accountSize, tradedAmount, result.ToString());
+                    _accountSize = Math.Round(_accountSize, 2) + (tradedAmount * _riskToReward);
                     winCounter++;
-                    _accountSize = Math.Round(_accountSize + (tradedAmount * _riskToReward), 2);
-                    Console.WriteLine((i + 1) + ".\t Trade Result: Win \t Account Size: \t " + _accountSize);
-                }
-                if (result == (int)TradeResult.Lose)
+                }else if (result == TradeResult.Lose)
                 {
-                    _accountSize = Math.Round(_accountSize - tradedAmount, 2);
-                    Console.WriteLine((i + 1) + ".\t Trade Result: Lose \t Account Size: \t " + _accountSize);
+                    Print(_accountSize, tradedAmount, result.ToString());
+                    _accountSize = Math.Round(_accountSize, 2) - (tradedAmount);
                 }
             }
-            Console.WriteLine("Winning %: \t\t\t" + (winCounter / tradeResults.Count) * 100);
-            Console.WriteLine("Press enter to run again.");
+            double winPercentage = winCounter / numberOfTrades;
+            Console.WriteLine(winPercentage);
+           
+
         }
 
-        private static void CollectParameters()
+        private static void Print(double accountSize, double tradedAmount, string result)
         {
-            Console.Clear();
-            Console.WriteLine("Enter the account size: ");
+            Console.WriteLine($"Account Size: { accountSize}\t Result: {result}\t Amount Traded: {tradedAmount}");
+        }
+
+        private static void PopulateParameters()
+        {
+            Console.WriteLine("Account Size: ");
             accountSize = Convert.ToDouble(Console.ReadLine());
-            Console.WriteLine("Enter the the percentage risk per trade: ");
+            Console.WriteLine("% risk per trade: ");
             percentageRiskPerTrade = Convert.ToDouble(Console.ReadLine());
-            Console.WriteLine("Enter the risk to reward ratio: ");
+            Console.WriteLine("Risk to reward: ");
             riskToReward = Convert.ToDouble(Console.ReadLine());
-            Console.WriteLine("Enter the number of trades: ");
+            Console.WriteLine("Total trades: ");
             numberOfTrades = Convert.ToInt32(Console.ReadLine());
         }
     }
